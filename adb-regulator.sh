@@ -29,6 +29,7 @@ help()
 	echo "Param $lookup_key: <regulator_name-SUPPLY>"
 	echo "Param $list_key: list regulators name in system"
 	echo "Param $close_key: <regulator_name> close regulators output"
+	echo "axp809 <--> axp22; axp806 <--> axp15"
 	echo ""
 
 	exit 1
@@ -47,6 +48,16 @@ execute_cmd()
 
 name_convert()
 {
+	echo $1 | grep -q "axp22"
+	if [ $? -eq 0 ]; then
+		regulator_input=`echo $1  | sed -n "s/axp22_/reg-22-cs-/p"`
+	fi
+
+	echo $1 | grep -q "axp15"
+	if [ $? -eq 0 ]; then
+		regulator_input=`echo $1  | sed -n "s/axp15/reg-15-cs-/p"`
+	fi
+
 	echo $1 | grep -q "axp806"
 	if [ $? -eq 0 ]; then
 		regulator_input=`echo $1  | sed -n "s/axp806_/reg-15-cs-/p"`
