@@ -4,11 +4,11 @@
 
 summary_key=summary
 set_key=set
-close_key=close
+disable_key=disable
+enable_key=enable
 info_key=info
 help_key=help
 lookup_key=whois
-close_key=close
 list_key=list
 
 ubuntu_key="ubuntu"
@@ -22,14 +22,15 @@ regulator_device_path=/sys/devices/platform
 	
 help()
 {
-	echo "Usage                 : $0 [$summary_key|$set_key|$lookup_key|$help_key|$info_key|$list_key|$close_key]"
+	echo "Mapping               : axp809 <--> axp22; axp806 <--> axp15"
+	echo "Usage                 : $0 [$summary_key|$set_key|$lookup_key|$help_key|$info_key|$list_key|$disable_key|$enable_key]"
 	echo "Param $summary_key: list regulators status"
 	echo "Param $set_key: <regulator_name> <uV>"
 	echo "Param $info_key: <regulator_name>"
 	echo "Param $lookup_key: <regulator_name-SUPPLY>"
 	echo "Param $list_key: list regulators name in system"
-	echo "Param $close_key: <regulator_name> close regulators output"
-	echo "axp809 <--> axp22; axp806 <--> axp15"
+	echo "Param $disable_key: <regulator_name> disable regulators output"
+	echo "Param $enable_key: <regulator_name> enable regulators output"
 	echo ""
 
 	exit 1
@@ -70,6 +71,20 @@ name_convert()
 	#echo $1 | sed -n "s/axp806_/reg-15-cs-/p"
 	#regulator_input=`echo $1 | sed -en "s/axp809_/reg-22-cs-/gp;s/axp806_/reg-15-cs-/gp"`
 	echo $regulator_input
+}
+
+enable_regulator()
+{
+	name_convert $1
+	volt=$2
+	dev_attr_file=enable
+	if [ $run_env = $ubuntu_key ]; then
+		echo adb shell "echo $volt > $regulator_device_path/$regulator_input/$dev_attr_file"
+		adb shell "echo $volt > $regulator_device_path/$regulator_input/$dev_attr_file"
+	else
+		echo "echo $volt > $regulator_device_path/$regulator_input/$dev_attr_file"
+		echo $volt > $regulator_device_path/$regulator_input/$dev_attr_file
+	fi
 }
 
 set_volt()
@@ -121,12 +136,13 @@ case $1 in
 
 		#adb shell "cat /sys/class/regulator/dump" > $dump_tmp_file
 		#sed -n "regulator.*-SUPPLY/p" $dump_tmp_file
+		#ldoio1 gpio0ldo
 
 		if [ $run_env = $ubuntu_key ]; then
-			adb shell cat $regulator_class_path/dump | sed -e "s/axp22/axp809/g;s/axp15/axp806/g"
+			adb shell cat $regulator_class_path/dump | sed -e "s/axp22/axp809/g;s/axp15/axp806/g;s/ldoio1/gpio1ldo/g;s/ldoio0/gpio0ldo/g"
 			#adb shell "cat $regulator_class_path/dump"
 		else
-			cat $regulator_class_path/dump | sed -e "s/axp22/axp809/g;s/axp15/axp806/g"
+			cat $regulator_class_path/dump | sed -e "s/axp22/axp809/g;s/axp15/axp806/g;s/ldoio1/gpio1ldo/g;s/ldoio0/gpio0ldo/g"
 		fi
 		;;
 	
@@ -158,11 +174,18 @@ case $1 in
 		set_volt $2 $3
 		;;
 
-	$close_key)
+	$disable_key)
 		if [ $# -ne 2 ]; then
 			help
 		fi
-		set_volt $2 0
+		enable_regulator $2 0
+		;;
+
+	$enable_key)
+		if [ $# -ne 2 ]; then
+			help
+		fi
+		enable_regulator $2 1
 		;;
 
 	$info_key)

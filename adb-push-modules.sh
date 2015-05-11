@@ -5,6 +5,8 @@ ctp_key=ctp
 sysconfig_key=sysconfig
 pmu_key=pmu
 wait_any_key_reboot=0
+base_dir=/media/buildserver/yuxin/
+
 
 help(){
 	echo "Usage                 : $0 [$lcd_key|$ctp_key|$sysconfig_key|$pmu_key]"
@@ -47,7 +49,7 @@ fi
 
 case $1 in
 	$lcd_key)
-		MODULE_PATH=/media/buildserver/android/lichee/linux-3.4/drivers/video/sunxi/
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/video/sunxi/
 		cd $MODULE_PATH
 
 		module_list="disp/disp.ko lcd/lcd.ko hdmi/hdcp.ko"
@@ -60,7 +62,7 @@ case $1 in
 		;;
 
 	$ctp_key)
-		MODULE_PATH=/media/buildserver/android/lichee/linux-3.4/drivers/input/touchscreen/gslx680
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/input/touchscreen/gslx680
 		cd $MODULE_PATH
 
 		execute_cmd adb remount
@@ -68,7 +70,7 @@ case $1 in
 		execute_cmd adb shell chmod 600 /vendor/modules/gslX680.ko
 		;;
 	$sysconfig_key)
-		SYSCONFIG_BIN=/media/buildserver/android/lichee/tools/pack/out/sys_config.bin
+		SYSCONFIG_BIN=${base_dir}/lichee/tools/pack/out/sys_config.bin
 		MOUNT_POINT="/data/bootloader"
 		execute_cmd adb shell "mkdir $MOUNT_POINT"
 		execute_cmd adb shell "mount -t vfat /dev/block/by-name/bootloader  $MOUNT_POINT"
@@ -76,7 +78,7 @@ case $1 in
 		execute_cmd adb shell umount $MOUNT_POINT
 		;;
 	$pmu_key)
-		MODULE_PATH=/media/buildserver/android/lichee/linux-3.4/drivers/power/axp_power
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/power/axp_power
 		MODULE_ANDROID_PATH=/vendor/modules
 		cd $MODULE_PATH
 
@@ -91,14 +93,15 @@ case $1 in
 		echo ""
 		echo ""
 
-		for module in $module_list; do
-			module_rmmod=${module%.ko}
-			is_module_insmod $module_rmmod
-			if [ $? -eq 0 ]; then
-				module_rmmod $MODULE_ANDROID_PATH/$module_rmmod
-			fi
-			module_insmod $MODULE_ANDROID_PATH/$module
-		done
+		#for module in $module_list; do
+		#	module_rmmod=${module%.ko}
+		#	is_module_insmod $module_rmmod
+		#	if [ $? -eq 0 ]; then
+		#		module_rmmod $MODULE_ANDROID_PATH/$module_rmmod
+		#	fi
+		#	module_insmod $MODULE_ANDROID_PATH/$module
+		#done
+
 		#for module in $module_list; do
 		#	echo "check module($module) is ismod"
 		#	is_module_insmod $module 
@@ -109,7 +112,7 @@ case $1 in
 		#	echo "module($module) insmod"
 		#	module_insmod $1
 		#done
-		exit 0
+		#exit 0
 		;;
 	*)
 		help
