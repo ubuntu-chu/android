@@ -57,17 +57,18 @@ case $1 in
 		execute_cmd adb remount
 		for module in $module_list; do
 			execute_cmd adb push $module /vendor/modules/$module
-			execute_cmd adb shell chmod 600 /vendor/modules/$module
+			execute_cmd adb shell chmod 644 /vendor/modules/$module
 		done
 		;;
 
 	$ctp_key)
-		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/input/touchscreen/gslx680
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/input/touchscreen/ft5x
 		cd $MODULE_PATH
 
 		execute_cmd adb remount
-		execute_cmd adb push gslX680.ko /vendor/modules/gslX680.ko
-		execute_cmd adb shell chmod 600 /vendor/modules/gslX680.ko
+		execute_cmd adb push ft5x_ts.ko /vendor/modules/ft5x_ts.ko
+		execute_cmd adb shell chmod 644 /vendor/modules/ft5x_ts.ko
+		exit 0
 		;;
 	$sysconfig_key)
 		SYSCONFIG_BIN=${base_dir}/lichee/tools/pack/out/sys_config.bin
@@ -87,7 +88,7 @@ case $1 in
 		execute_cmd adb remount
 		for module in $module_list; do
 			execute_cmd adb push $module $MODULE_ANDROID_PATH/$module
-			execute_cmd adb shell chmod 600 $MODULE_ANDROID_PATH/$module
+			execute_cmd adb shell chmod 644 $MODULE_ANDROID_PATH/$module
 		done
 
 		echo ""
