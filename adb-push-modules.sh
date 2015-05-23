@@ -2,10 +2,14 @@
 
 lcd_key=lcd
 ctp_key=ctp
+motor_key=motor
+ov13_key=ov13
+vfe_key=vfe
 sysconfig_key=sysconfig
 pmu_key=pmu
 wait_any_key_reboot=0
 base_dir=/media/buildserver/yuxin/
+MODULE_ANDROID_PATH=/vendor/modules
 
 
 help(){
@@ -43,11 +47,49 @@ module_rmmod()
 	return $?
 }
 
+module_push()
+{
+	execute_cmd adb remount
+	for module in $1; do
+		execute_cmd adb push $2/$module $MODULE_ANDROID_PATH/$module
+		execute_cmd adb shell chmod 644 $MODULE_ANDROID_PATH/$module
+	done
+}
+
 if [ $# -ne 1 ]; then
 	help
 fi
 
 case $1 in
+	$ov13_key)
+
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/device
+		cd $MODULE_PATH
+
+		module_list="ov13850.ko"
+		module_push "$module_list" "$MODULE_PATH"
+		exit 0
+		;;
+
+	$vfe_key)
+
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/
+		cd $MODULE_PATH
+
+		module_list="vfe_os.ko vfe_subdev.ko vfe_v4l2.ko"
+		module_push "$module_list" "$MODULE_PATH"
+		;;
+
+	$motor_key)
+		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/misc
+		cd $MODULE_PATH
+
+		execute_cmd adb remount
+		execute_cmd adb push sunxi-vibrator.ko /vendor/modules/sunxi-vibrator.ko
+		execute_cmd adb shell chmod 644 /vendor/modules/sunxi-vibrator.ko
+		exit 0
+		;;
+		
 	$lcd_key)
 		MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/video/sunxi/
 		cd $MODULE_PATH
