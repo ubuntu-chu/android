@@ -3,7 +3,7 @@
 lcd_key=lcd
 ctp_key=ctp
 motor_key=motor
-ov13_key=ov13
+camera_key=camera
 vfe_key=vfe
 sysconfig_key=sysconfig
 pmu_key=pmu
@@ -65,16 +65,22 @@ module_rmmod()
 	done
 }
 
-var_set_ov13()
+var_set_camera()
 {
 	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/device
-	module_list="ov13850.ko"
+	module_list="ov13850.ko ov5648.ko"
 }
 
 var_set_vfe()
 {
 	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/
 	module_list="vfe_os.ko vfe_subdev.ko vfe_v4l2.ko"
+}
+
+var_set_cci()
+{
+	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/csi_cci/
+	module_list="cci.ko"
 }
 
 var_set_motor()
@@ -104,14 +110,16 @@ var_set_pmu()
 push_done()
 {
 	case $1 in
-		$ov13_key)
-			var_set_ov13
+		$camera_key)
+			var_set_camera
 			module_push "$module_list" "$MODULE_PATH"
 			exit 0
 			;;
 
 		$vfe_key)
 			var_set_vfe
+			module_push "$module_list" "$MODULE_PATH"
+			var_set_cci
 			module_push "$module_list" "$MODULE_PATH"
 			;;
 
@@ -146,7 +154,7 @@ push_done()
 insmod_done()
 {
 	case $1 in
-		$ov13_key)
+		$camera_key)
 			var_set_ov13
 			module_insmod "$module_list" 
 			exit 0
@@ -188,7 +196,7 @@ insmod_done()
 rmmod_done()
 {
 	case $1 in
-		$ov13_key)
+		$camera_key)
 			var_set_ov13
 			module_rmmod "$module_list" 
 			;;
