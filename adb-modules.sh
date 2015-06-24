@@ -4,9 +4,12 @@ lcd_key=lcd
 ctp_key=ctp
 motor_key=motor
 camera_key=camera
+ft6188_key=ft6188
 vfe_key=vfe
 sysconfig_key=sysconfig
 pmu_key=pmu
+module_4g_key=4g
+cpu_key=cpu
 wait_any_key_reboot=0
 base_dir=/media/buildserver/yuxin/
 MODULE_ANDROID_PATH=/vendor/modules
@@ -44,8 +47,8 @@ module_push()
 {
 	execute_cmd adb remount
 	for module in $1; do
-		execute_cmd adb push $2/$module $MODULE_ANDROID_PATH/$module
-		execute_cmd adb shell chmod 644 $MODULE_ANDROID_PATH/$module
+		execute_cmd adb push $2/$module $MODULE_ANDROID_PATH/$(basename $module)
+		execute_cmd adb shell chmod 644 $MODULE_ANDROID_PATH/$(basename $module)
 	done
 
 	adb shell sync
@@ -65,10 +68,16 @@ module_rmmod()
 	done
 }
 
+var_set_4g_key()
+{
+	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/net/usb
+	module_list="ttyxin.ko xin100.ko"
+}
+
 var_set_camera()
 {
 	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/media/video/sunxi-vfe/device
-	module_list="ov13850.ko ov5648.ko"
+	module_list="ov13850.ko ov5648.ko ../actuator/dw9714_act.ko"
 }
 
 var_set_vfe()
@@ -107,9 +116,26 @@ var_set_pmu()
 	module_list="virtual15.ko virtual15_dev.ko virtual22.ko virtual22_dev.ko"
 }
 
+var_set_ft6188()
+{
+	MODULE_PATH=${base_dir}/lichee/linux-3.4/drivers/spi
+	module_list="spi-ft6188.ko"
+}
+
 push_done()
 {
 	case $1 in
+		$module_4g_key)
+			var_set_4g_key
+			module_push "$module_list" "$MODULE_PATH"
+			;;
+
+		$ft6188_key)
+			var_set_ft6188
+			module_push "$module_list" "$MODULE_PATH"
+			exit 0
+			;;
+
 		$camera_key)
 			var_set_camera
 			module_push "$module_list" "$MODULE_PATH"
@@ -144,6 +170,14 @@ push_done()
 			var_set_pmu
 			module_push "$module_list" "$MODULE_PATH"
 			;;
+
+		$cpu_key)
+			execute_cmd adb remount
+			execute_cmd adb push /home/chum/work/android/cpu-tools.sh /system/bin/
+			execute_cmd adb shell chmod 777 /system/bin/cpu-tools.sh
+			adb shell sync
+			exit 0
+			;;
 		*)
 			help
 			;;
@@ -154,6 +188,17 @@ push_done()
 insmod_done()
 {
 	case $1 in
+		$module_4g_key)
+			var_set_4g_key
+			module_insmod "$module_list" 
+			exit 0
+			;;
+
+		$ft6188_key)
+			var_set_ft6188
+			module_insmod "$module_list" 
+			exit 0
+			;;
 		$camera_key)
 			var_set_ov13
 			module_insmod "$module_list" 
@@ -196,6 +241,17 @@ insmod_done()
 rmmod_done()
 {
 	case $1 in
+		$module_4g_key)
+			var_set_4g_key
+			module_rmmod "$module_list" 
+			exit 0
+			;;
+
+		$ft6188_key)
+			var_set_ft6188
+			module_rmmod "$module_list" 
+			;;
+
 		$camera_key)
 			var_set_ov13
 			module_rmmod "$module_list" 
