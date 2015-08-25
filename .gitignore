@@ -2,5 +2,8 @@ A80/
 a80_merrii/
 mokoid/
 .*
+*.mp4
+*.apk
+
 
 !.gitignore
